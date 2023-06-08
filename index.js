@@ -29,18 +29,34 @@ async function run() {
     // Send a ping to confirm a successful connection
 
     const classCollection = client.db('summerCampDb').collection('classes')
-    // console.log(classCollection)
     const instructorCollection = client.db('summerCampDb').collection('instructors')
+    const selectedClassCollection = client.db('summerCampDb').collection('selectedClass');
+
+
+    app.get('/selectedClass/:email',async(req, res)=>{
+      const email = req.params.email;
+      if(!email){
+        res.send([])
+      }
+      const query = {studentEmail: email}
+      const result = await selectedClassCollection.find(query).toArray()
+      res.send(result)
+    } )
+
+    app.post('/selectedClass', async(req,res)=>{
+      const selectedClass = req.body;
+      const result =await selectedClassCollection.insertOne(selectedClass);
+      console.log(result)
+      res.send(result);
+    })
 
     app.get('/classes/:email', async(req, res)=>{
       const email = req.params.email;
-      console.log(email)
       if(!email){
         res.send([])
       }
       const query = {email: email}
       const result = await classCollection.find(query).toArray()
-      console.log(result)
       res.send(result)
     })
 
