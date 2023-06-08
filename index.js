@@ -32,6 +32,18 @@ async function run() {
     // console.log(classCollection)
     const instructorCollection = client.db('summerCampDb').collection('instructors')
 
+    app.get('/classes/:email', async(req, res)=>{
+      const email = req.params.email;
+      console.log(email)
+      if(!email){
+        res.send([])
+      }
+      const query = {email: email}
+      const result = await classCollection.find(query).toArray()
+      console.log(result)
+      res.send(result)
+    })
+
     app.get('/classes', async(req,res)=>{
         const result = await classCollection.find().toArray()
         res.send(result)
@@ -40,7 +52,7 @@ async function run() {
     app.post('/classes', async(req, res)=>{
       const classInfo = req.body;
       const result = await classCollection.insertOne(classInfo)
-      console.log(result)
+      // console.log(result)
       res.send(result)
     })
 
