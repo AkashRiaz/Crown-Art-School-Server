@@ -1,11 +1,14 @@
 const express = require('express');
 const cors = require('cors')
+// const bodyParser = require('body-parser');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+// const stripe = require("stripe")(process.env.PAYMENT_SECRET_KEY);
 require('dotenv').config()
 const app = express()
 const port = process.env.PORT || 5000;
 app.use(cors())
 app.use(express.json())
+// app.use(bodyParser.json());
 
 
 
@@ -43,12 +46,13 @@ async function run() {
       res.send(result)
     } )
 
-    app.post('/selectedClass', async(req,res)=>{
-      const selectedClass = req.body;
-      const result =await selectedClassCollection.insertOne(selectedClass);
-      console.log(result)
-      res.send(result);
-    })
+    // app.post('/selectedClass', async(req,res)=>{
+    //   const selectedClass = req.body;
+    //   const result =await selectedClassCollection.insertOne(selectedClass);
+    //   console.log(result)
+    //   res.send(result);
+    // })
+    
 
     app.delete('/selectedClass/:id', async(req, res)=>{
       const id = req.params.id
@@ -84,6 +88,21 @@ async function run() {
         
         res.send(result)
     })
+
+    // app.post('/createPayment', async(req, res)=>{
+    //   const{ price} = req.body;
+    //   console.log(price)
+    //   const amount = price * 100;
+    //   const paymentIntent = await stripe.paymentIntents.create({
+    //     amount: amount,
+    //     currency: "usd",
+    //     payment_method_types: [
+    //       "card"
+    //     ],
+    //   });
+
+    //   // res.send({clientSecret: paymentIntent.client_secret});
+    // })
 
 
     await client.db("admin").command({ ping: 1 });
