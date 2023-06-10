@@ -30,10 +30,18 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     // Send a ping to confirm a successful connection
-
+     
+    const usersCollection = client.db('summerCampDb').collection('users')
     const classCollection = client.db('summerCampDb').collection('classes')
     const instructorCollection = client.db('summerCampDb').collection('instructors')
     const selectedClassCollection = client.db('summerCampDb').collection('selectedClass');
+
+
+    app.post('/users', async(req, res)=>{
+      const user = req.body;
+      const result = await usersCollection.insertOne(user);
+      res.send(result)
+    })
 
 
     app.get('/selectedClass/:email',async(req, res)=>{
