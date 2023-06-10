@@ -55,7 +55,7 @@ async function run() {
 
     app.post('/jwt', async(req, res)=>{
       const user = req.body;
-      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15d' })
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '7d' })
 
       res.send({ token })
     })
@@ -77,6 +77,20 @@ async function run() {
       res.send(result)
     })
 
+
+    app.get('/users/admin/:email', verifyJWT, async (req, res) => {
+      const email = req.params.email;
+
+      if (req.decoded.email !== email) {
+        res.send({ admin: false })
+      }
+
+      const query = { email: email }
+      const user = await usersCollection.findOne(query);
+      const result = { admin: user?.role === 'admin' }
+      res.send(result);
+    })
+
     app.patch('/users/admin/:id', async(req, res)=>{
       const id = req.params.id;
       const filter = {_id: new ObjectId(id)}
@@ -89,6 +103,8 @@ async function run() {
       const result = await usersCollection.updateOne(filter, updatedDoc)
       res.send(result)
     })
+
+    
 
     app.patch('/users/instructors/:id', async(req, res)=>{
       const id = req.params.id;
@@ -119,13 +135,6 @@ async function run() {
       const result = await selectedClassCollection.find(query).toArray()
       res.send(result)
     } )
-
-    // app.post('/selectedClass', async(req,res)=>{
-    //   const selectedClass = req.body;
-    //   const result =await selectedClassCollection.insertOne(selectedClass);
-    //   console.log(result)
-    //   res.send(result);
-    // })
     
 
     app.delete('/selectedClass/:id', async(req, res)=>{
