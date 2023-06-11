@@ -3,6 +3,7 @@ const cors = require('cors')
 const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 // const stripe = require("stripe")(process.env.PAYMENT_SECRET_KEY);
+const stripe = require('stripe')(process.env.PAYMENT_SECRET_KEY)
 require('dotenv').config()
 const app = express()
 const port = process.env.PORT || 5000;
@@ -170,6 +171,12 @@ async function run() {
       const result = await selectedClassCollection.find(query).toArray()
       res.send(result)
     } )
+
+    app.post('/selectedClass', async(req, res)=>{
+      const selectedClass = req.body;
+      const result = await selectedClassCollection.insertOne(selectedClass)
+      res.send(result) 
+    })
     
 
     app.delete('/selectedClass/:id', async(req, res)=>{
@@ -197,7 +204,51 @@ async function run() {
     app.post('/classes', async(req, res)=>{
       const classInfo = req.body;
       const result = await classCollection.insertOne(classInfo)
-      // console.log(result)
+      res.send(result)
+    })
+
+    app.patch('/classes/approved/:id', async(req, res)=>{
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)}
+
+      const updatedDoc={
+        $set:{
+          status:'approved'
+        }
+      }
+      const result = await classCollection.updateOne(filter, updatedDoc)
+      res.send(result)
+    })
+
+    app.patch('/classes/denied/:id', async(req, res)=>{
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)}
+
+      const updatedDoc={
+        $set:{
+          status:'denied'
+        }
+      }
+      const result = await classCollection.updateOne(filter, updatedDoc)
+      res.send(result)
+    })
+    app.patch('/classes/feedback/:id', async(req, res)=>{
+      const feedback = req.body;
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)}
+
+      const updatedDoc={
+        $set:{
+          status:feedback
+        }
+      }
+      const result = await classCollection.updateOne(filter, updatedDoc)
+      res.send(result)
+    })
+
+    app.get('/user/instructors', async(req, res)=>{
+      const query ={role: 'instructors'}
+      const result = await usersCollection.find(query).toArray()
       res.send(result)
     })
 
@@ -221,6 +272,20 @@ async function run() {
 
     //   // res.send({clientSecret: paymentIntent.client_secret});
     // })
+
+    app.post('/create-payment-intent', verifyJWT, async (req, res) => {
+      const { price } = req.body;
+      const amount = parseInt(price * 100);
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: 'usd',
+        payment_method_types: ['card']
+      });
+
+      res.send({
+        clientSecret: paymentIntent.client_secret
+      })
+    })
 
 
     await client.db("admin").command({ ping: 1 });
