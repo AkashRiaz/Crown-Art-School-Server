@@ -60,7 +60,31 @@ async function run() {
       res.send({ token })
     })
 
-    app.get('/users', async(req, res)=>{
+    const verifyAdmin = async (req, res, next) => {
+      const email = req.decoded.email;
+      const query = { email: email }
+      const user = await usersCollection.findOne(query);
+      if (user?.role !== 'admin') {
+        return res.status(403).send({ error: true, message: 'forbidden message' });
+      }
+      next();
+    }
+
+    const verifyInstructor = async (req, res, next) => {
+      const email = req.decoded.email;
+      const query = { email: email }
+      const user = await usersCollection.findOne(query);
+      if (user?.role !== 'instructors') {
+        return res.status(403).send({ error: true, message: 'forbidden message' });
+      }
+      next();
+    }
+
+    app.get('/users',verifyJWT,verifyAdmin, async(req, res)=>{
+      const result = await usersCollection.find().toArray()
+      res.send(result)
+    })
+    app.get('/users',verifyJWT,verifyInstructor, async(req, res)=>{
       const result = await usersCollection.find().toArray()
       res.send(result)
     })
