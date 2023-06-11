@@ -104,7 +104,18 @@ async function run() {
       res.send(result)
     })
 
-    
+    app.get('/users/instructors/:email', verifyJWT, async (req, res) => {
+      const email = req.params.email;
+
+      if (req.decoded.email !== email) {
+        res.send({ instructors: false })
+      }
+
+      const query = { email: email }
+      const user = await usersCollection.findOne(query);
+      const result = { instructor: user?.role === 'instructors' }
+      res.send(result);
+    })
 
     app.patch('/users/instructors/:id', async(req, res)=>{
       const id = req.params.id;
