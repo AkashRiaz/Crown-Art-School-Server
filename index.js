@@ -15,7 +15,7 @@ const verifyJWT = (req, res, next) => {
   if (!authorization) {
     return res.status(401).send({ error: true, message: 'unauthorized access' });
   }
-  // bearer token
+  
   const token = authorization.split(' ')[1];
 
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
@@ -45,7 +45,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+     client.connect();
     // Send a ping to confirm a successful connection
      
     const usersCollection = client.db('summerCampDb').collection('users')
@@ -56,7 +56,7 @@ async function run() {
 
     app.post('/jwt', async(req, res)=>{
       const user = req.body;
-      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '2d' })
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '7d' })
 
       res.send({ token })
     })
@@ -198,20 +198,42 @@ async function run() {
       res.send(result)
     })
 
-    // app.get('/classes', async(req,res)=>{
-    //     const result = await classCollection.find().toArray()
-    //     res.send(result)
-    // })
 
     app.get('/classes', async(req, res)=>{
        const result = await classCollection.find().sort({ num_student: -1 }).toArray();
     res.send(result);
     })
 
+   
+
+    app.get('/class/:id', async(req, res)=>{
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)}
+      const result = await classCollection.findOne(filter)
+      res.send(result)
+    })
     app.post('/classes', async(req, res)=>{
       const classInfo = req.body;
       const result = await classCollection.insertOne(classInfo)
       res.send(result)
+    })
+
+    app.patch('/classes/:id', async(req, res)=>{
+      const id = req.params.id;
+      const updatedClass = req.body;
+      const filter = {_id: new ObjectId(id)}
+      const singleUpdatedClass ={
+        $set:{
+          photo:updatedClass.photo,
+      name:updatedClass.name,
+      instructorName:updatedClass.instructorName,
+      email:updatedClass.email,
+      price: updatedClass.price,
+      availableSeats:updatedClass.availableSeats
+        }
+      }
+      const result =await classCollection.updateOne(filter, singleUpdatedClass)
+      res.send(result);
     })
 
     app.patch('/classes/approved/:id', async(req, res)=>{
@@ -267,7 +289,7 @@ async function run() {
     })
 
 
-    // app.post('/create-payment-intent', async (req, res) => {
+    // app.post('/create-payment-intent',verifyJWT, async (req, res) => {
     //   const { price } =await req.body;
     //   const amount = parseInt(price * 100);
     //   console.log(price, amount)
